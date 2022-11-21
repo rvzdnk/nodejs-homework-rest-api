@@ -1,6 +1,6 @@
 const Joi = require("joi");
 
-const schemaAddContact = Joi.object({
+const schemaCreateContact = Joi.object({
 	name: Joi.string().alphanum().min(3).max(30).required(),
 	email: Joi.string()
 		.email({
@@ -11,26 +11,49 @@ const schemaAddContact = Joi.object({
 	phone: Joi.string()
 		.pattern(/^(\+48\s+)?\d{3}(\s*|\-)\d{3}(\s*|\-)\d{3}$/)
 		.required(),
+	favorite: Joi.boolean().optional(),
 });
 
 const schemaUpdateContact = Joi.object({
-	name: Joi.string().alphanum().min(3).max(30).optional(),
+	name: Joi.string().alphanum().min(3).max(30).required(),
 	email: Joi.string()
 		.email({
 			minDomainSegments: 2,
 			tlds: { allow: ["com", "net", "pl"] },
 		})
-		.optional(),
+		.required(),
 	phone: Joi.string()
 		.pattern(/^(\+48\s+)?\d{3}(\s*|\-)\d{3}(\s*|\-)\d{3}$/)
-		.optional(),
-}).min(1);
+		.required(),
+	favorite: Joi.boolean().optional(),
+});
 
-const validationAddContact = (obj) => schemaAddContact.validate(obj);
-const validationUpdateContact = (obj) =>
-  schemaUpdateContact.validate(obj);
+const schemaUpdateStatusContact = Joi.object({
+	favorite: Joi.boolean().required(),
+});
 
-module.exports = {
-  validationAddContact,
-  validationUpdateContact,
+const validate = (schema, obj, next, res) => {
+	const { error } = schema.validate(obj);
+	if (error) {
+		const [{ message }] = error.details;
+		console.log(error);
+		return res.json({
+			status: "failure",
+			code: 400,
+			message: `Field ${message.replace(/"/g, "")}`,
+		});
+	}
+	next();
+};
+
+module.exports.createContact = (req, res, next) => {
+	return validate(schemaCreateContact, req.body, next, res);
+};
+
+module.exports.updateContact = (req, res, next) => {
+	return validate(schemaUpdateContact, req.body, next, res);
+};
+
+module.exports.updateStatusContact = (req, res, next) => {
+	return validate(schemaUpdateStatusContact, req.body, next, res);
 };
