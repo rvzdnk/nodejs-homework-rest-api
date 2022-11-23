@@ -4,8 +4,8 @@ require("dotenv").config();
 const secret = process.env.SECRET;
 
 const registerUser = async (req, res, next) => {
-	const { email } = req.body;
 	try {
+		const { email } = req.body;
 		const user = await service.findUserByEmail(email);
 		if (user) {
 			return res.status(409).json({
@@ -21,7 +21,6 @@ const registerUser = async (req, res, next) => {
 			message: "Registration successful",
 			user: {
 				email: newUser.email,
-				subscription: newUser.subscription,
 			},
 		});
 	} catch (error) {
@@ -41,7 +40,7 @@ const loginUser = async (req, res, next) => {
 				message: "Email or password is wrong",
 			});
 		}
-		const { id, subscription } = user;
+		const { id } = user;
 		const payload = {
 			id,
 			email,
@@ -55,7 +54,6 @@ const loginUser = async (req, res, next) => {
 			token,
 			user: {
 				email,
-				subscription,
 			},
 		});
 	} catch (error) {

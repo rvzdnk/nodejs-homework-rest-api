@@ -1,29 +1,37 @@
 const Joi = require("joi");
 
-const schemaFindUserByEmail = Joi.object({
+const userSchema = Joi.object({
 	email: Joi.string()
-		.email({
-			minDomainSegments: 2,
-			tlds: { allow: ["com", "net", "pl"] },
-		})
-		.required(),
-	password: Joi.string().pattern(new RegExp("^[a-zA-Z0-9]{3,30}$")).required(),
-});
+	  .trim()
+	  .email({
+		minDomainSegments: 2,
+	  })
+	  .pattern(
+		/^([a-z0-9_-]+\.)*[a-z0-9_-]+@[a-z0-9_-]+(\.[a-z0-9_-]+)*\.[a-z]{2,6}$/
+	  )
+	  .required(),
+	password: Joi.string()
+	  .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/)
+	  .required(),
+  });
 
-const validate = (schema, obj, next, res) => {
-	const { error } = schema.validate(obj);
+
+const validation = (schema, req, res, next) => {
+	const { error } = schema.validate(req.body);
 	if (error) {
-		const [{ message }] = error.details;
-		console.log(error);
-		return res.json({
-			status: "failure",
-			code: 400,
-			message: `Field ${message.replace(/"/g, "")}`,
-		});
+	  const [{ message }] = error.details;
+	  return res.json({
+		status: "failure",
+		code: 400,
+		message: `Field ${message.replace(/"/g, "")}`,
+	});
 	}
 	next();
-};
+  };
 
-module.exports.findUserByEmail = (req, res, next) => {
-	return validate(schemaFindUserByEmail, req.body, next, res);
+const userValidation = (req, res, next) =>
+  	validation(userSchema, req, res, next);
+
+module.exports = {
+	userValidation
 };
