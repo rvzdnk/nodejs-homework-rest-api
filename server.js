@@ -29,7 +29,6 @@ app.use((req, res) => {
     /api/users/login - login {email, password},
 	/api/users/logout - logout,
 	/api/users/current - current user,
-	/api/users/ - to change subscription,
     /api/contacts - to get all users or post user,
 	/api/contacts/:contactId - to get, delete or update user by ID,
 	/api/contacts/:contactId/favorite - to add or remove user from favorites`,
