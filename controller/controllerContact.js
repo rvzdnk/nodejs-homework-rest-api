@@ -1,4 +1,4 @@
-const service = require("../service/index");
+const service = require("../service/contact");
 
 const getContacts = async (req, res, next) => {
 	try {
@@ -16,7 +16,7 @@ const getContacts = async (req, res, next) => {
 const getContactById = async (req, res, next) => {
 	const { contactId } = req.params;
 	try {
-		const contactById = await service.getOneContact(contactId);
+		const contactById = await service.getContactById(contactId);
 		if (contactById) {
 			res.json({
 				status: "success",
@@ -52,7 +52,7 @@ const createNewContact = async (req, res, next) => {
 const removeContact = async (req, res, next) => {
 	const { contactId } = req.params;
 	try {
-		const contact = await service.deleteContact(contactId);
+		const contact = await service.removeContact(contactId);
 		if (contact) {
 			res.json({
 				status: "success",
