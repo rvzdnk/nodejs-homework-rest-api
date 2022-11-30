@@ -2,6 +2,8 @@ const service = require("../service/user");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const secret = process.env.SECRET;
+const Jimp = require("jimp");
+const fs = require("fs");
 
 const registerUser = async (req, res, next) => {
 	try {
@@ -87,9 +89,41 @@ const getCurrentUser = async (req, res, next) => {
 	}
 };
 
+const patchAvatar = async (req, res, next) => {
+	const { id } = req.user;
+	const avatarURL = `/avatars/av_${id}.png`;
+	if (!req.file) {
+		return res.status(400).json({ message: "This is not the photo" });
+	}
+	Jimp.read(`tmp/${req.file.filename}`)
+		.then((avatar) => {
+			return avatar.resize(250, 250).write(`public/avatars/avatar_${id}.png`);
+		})
+		.catch((error) => {
+			console.error(error);
+		});
+	await service.updateAvatar(id, avatarURL);
+	try {
+		fs.unlink(req.file.path, () => {
+			console.log("removed from tmp");
+		});
+		res.status(200).json({
+			status: "success",
+			code: 200,
+			message: "OK",
+			data: {
+				avatarURL,
+			},
+		});
+	} catch (error) {
+		next(error);
+	}
+};
+
 module.exports = {
 	registerUser,
 	loginUser,
 	logoutUser,
 	getCurrentUser,
+	patchAvatar,
 };
