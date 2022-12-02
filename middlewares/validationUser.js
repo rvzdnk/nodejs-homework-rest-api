@@ -16,6 +16,15 @@ const userSchema = Joi.object({
   });
 
 
+const verifyEmailSchema = Joi.object({
+	email: Joi.string()
+		.email({
+			minDomainSegments: 2,
+			tlds: { allow: ["com", "net", "pl"] },
+		})
+		.required(),
+});
+
 const validation = (schema, req, res, next) => {
 	const { error } = schema.validate(req.body);
 	if (error) {
@@ -32,6 +41,10 @@ const validation = (schema, req, res, next) => {
 const userValidation = (req, res, next) =>
   	validation(userSchema, req, res, next);
 
+const emailValidation = (req, res, next) =>
+  	validation(verifyEmailSchema, req, res, next);
+
 module.exports = {
-	userValidation
+	userValidation,
+	emailValidation,
 };
