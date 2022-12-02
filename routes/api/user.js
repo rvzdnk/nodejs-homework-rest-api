@@ -35,6 +35,8 @@ router.post("/signup", validation.userValidation, userController.registerUser);
 router.post("/login", validation.userValidation, userController.loginUser);
 router.get("/logout", authMiddleware, userController.logoutUser);
 router.get("/current", authMiddleware, userController.getCurrentUser);
-router.patch("/avatars", authMiddleware, multerInstance.single("avatar"), userController.patchAvatar)
+router.patch("/avatars", authMiddleware, multerInstance.single("avatar"), userController.patchAvatar);
+router.get("/verify/:verificationToken", userController.verifyEmail);
+router.post("/verify", validation.emailValidation, userController.resendVerificationEmail);
 
 module.exports = router;

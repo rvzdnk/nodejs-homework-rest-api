@@ -20,7 +20,7 @@ const registerUser = async (req, res, next) => {
 		res.status(201).json({
 			status: "created",
 			code: 201,
-			message: "Registration successful",
+			message: "Registration successful. We have sent a verification email. Please verify your email address before logging in.",
 			user: {
 				email: newUser.email,
 			},
@@ -35,11 +35,19 @@ const loginUser = async (req, res, next) => {
 	try {
 		const user = await service.findUserByEmail(email);
 		const isPasswordCorrect = await service.passwordValidation(email, password);
+		const isEmailVerified = await service.emailVerification(email);
 		if (!user || !isPasswordCorrect) {
 			return res.status(401).json({
 				status: "Unauthorized",
 				code: 401,
 				message: "Email or password is wrong",
+			});
+		}
+		else if (!isEmailVerified) {
+			return res.status(401).json({
+				status: "Unauthorized",
+				code: 401,
+				message: "Please verify Your account first",
 			});
 		}
 		const { id } = user;
@@ -120,10 +128,67 @@ const patchAvatar = async (req, res, next) => {
 	}
 };
 
+const verifyEmail = async (req, res, next) => {
+	const { verificationToken } = req.params;
+	try {
+		const user = await service.updateVerificationToken(verificationToken);
+		if (user) {
+			res.status(200).json({
+				status: "success",
+				code: 200,
+				message: "Verification succesful",
+			});
+		} else {
+			res.status(404).json({
+				status: "error",
+				code: 404,
+				message: `User not found`,
+			});
+		}
+	} catch (error) {
+		next(error);
+	}
+};
+
+const resendVerificationEmail = async (req, res, next) => {
+	const { email } = req.body;
+	try {
+		const user = await service.findUserByEmail(email);
+		const isEmailVerified = await service.emailVerification(email);
+		if (!user) {
+			res.status(404).json({
+				status: "error",
+				code: 404,
+				message: `User not found`,
+				data: "Not Found",
+			});
+		} else if (!isEmailVerified) {
+			service.resendVerification(email);
+			res.status(200).json({
+				status: "success",
+				code: 200,
+				message: "Verification email sent",
+				data: "OK",
+			});
+		} else {
+			res.status(400).json({
+				status: "error",
+				code: 400,
+				message: "Verification has already been passed",
+				data: "Bad request",
+			});
+		}
+	} catch (error) {
+		next(error);
+	}
+};
+
 module.exports = {
 	registerUser,
 	loginUser,
 	logoutUser,
 	getCurrentUser,
 	patchAvatar,
+	verifyEmail,
+	resendVerificationEmail,
 };
